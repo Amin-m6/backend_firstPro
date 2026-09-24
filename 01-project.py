@@ -1,4 +1,5 @@
 import requests , random , json , time 
+from typing import List, Dict, Callable, Optional
 
 base_url = 'https://openlibrary.org/search.json'
 
@@ -28,7 +29,9 @@ def fetch_random_book(count=10):
       "q":f'subject:{subject}',
       "limit":10,
       "offset":offset,
-      "fields":
+      "fields": "key,title,author_name,first_publish_year,"
+                      "language,number_of_pages_median,subject,"
+                      "publisher,isbn,ratings_average,ratings_count"
     }
 
     try:
@@ -46,3 +49,49 @@ def fetch_random_book(count=10):
       print(f'some thing is wrong: {e}')
     time.sleep(1)
   return books[:count]
+
+def filter_books(
+    books: List[Dict],
+    min_year: Optional[int] = None,
+    max_year: Optional[int] = None,
+    min_pages: Optional[int] = None,
+    max_pages: Optional[int] = None,
+    language: Optional[str] = None,
+    min_rating: Optional[float] = None,
+    author_contains: Optional[str] = None,
+    custom_filter: Optional[Callable[[Dict], bool]] = None
+) -> List[Dict]:
+   def matches(book: Dict) -> bool:
+    # publish_year
+    year = book.get("first_publish_year")
+    if min_year and (year is None or year < min_year):
+        return False
+    if max_year and (year is None or year > max_year):
+        return False
+
+    # number_of_page
+    pages = book.get("number_of_pages_median")
+    if min_pages and (pages is None or pages < min_pages):
+        return False
+    if max_pages and (pages is None or pages > max_pages):
+        return False
+
+    # language
+    if language:
+        langs = book.get("language", [])
+        if language not in langs:
+            return False
+
+    # rating
+    rating = book.get("ratings_average")
+    if min_rating and (rating is None or rating < min_rating):
+        return False
+
+    # outhor
+    if author_contains:
+        authors = " ".join(book.get("author_name", []))
+        if author_contains.lower() not in authors.lower():
+            return False
+
+
+    return [b for b in books if matches(b)]
