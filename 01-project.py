@@ -109,3 +109,28 @@ def save_book( books: List[Dict] , file_name:str = 'savebooks.csv'):
   except : print('saving data was failed. \n try agane!!')
 
 
+
+# ---------- test code ----------
+  
+print("🔍 finding some random book...")
+random_books = fetch_random_book(count=30)
+print(f"number of books : {len(random_books)}")
+
+#filter books
+filtered = filter_books(
+    random_books,
+    min_year=1950,
+    max_year=2020,
+    min_pages=100,
+    min_rating=3.5,
+    language="eng"
+)
+print(f"number of books after filtering: {len(filtered)}")
+
+# show result and save
+for book in filtered:
+  print(f"- {book.get('title')} ({book.get('first_publish_year')}) "
+        f"| {book.get('number_of_pages_median')} page")
+
+save_book(filtered, "savebooks.csv")
+
