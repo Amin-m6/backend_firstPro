@@ -20,7 +20,7 @@ def fetch_random_book(count=10):
   attempts = 0
   max_attempt = count*5
 
-  while len(books)< count and max_attempt<= attempts:
+  while len(books)< count and  attempts < max_attempt:
     attempts += 1
     subject = random.choice(subjects)
     offset = random.randint(0,500)
@@ -39,7 +39,7 @@ def fetch_random_book(count=10):
       response.raise_for_status()
       data = response.json()
 
-      for docs in data.get("dacs:",[]):
+      for docs in data.get("dacs",[]):
         if docs not in books:
           books.append(docs)
           if len(books)>= count:
@@ -61,7 +61,7 @@ def filter_books(
     author_contains: Optional[str] = None,
     custom_filter: Optional[Callable[[Dict], bool]] = None
 ) -> List[Dict]:
-   def matches(book: Dict) -> bool:
+  def matches(book: Dict) -> bool:
     # publish_year
     year = book.get("first_publish_year")
     if min_year and (year is None or year < min_year):
@@ -93,10 +93,13 @@ def filter_books(
         if author_contains.lower() not in authors.lower():
             return False
 
-
-    return [b for b in books if matches(b)]
+    return True
+  return [b for b in books if matches(b)]
    
 def save_book( books: List[Dict] , file_name:str = 'savebooks.csv'):
+  if not books:
+     print("ther is not any book to save")
+     return
   try:
     with open(file_name,'w',encoding='utf-8-sig',newline='') as f:
       writer = csv.writer(f)
@@ -128,9 +131,9 @@ filtered = filter_books(
 print(f"number of books after filtering: {len(filtered)}")
 
 # show result and save
-for book in filtered:
-  print(f"- {book.get('title')} ({book.get('first_publish_year')}) "
-        f"| {book.get('number_of_pages_median')} page")
+#for book in filtered:
+  #print(f"- {book.get('title')} ({book.get('first_publish_year')}) "
+        #f"| {book.get('number_of_pages_median')} page")
 
-save_book(filtered, "savebooks.csv")
+save_book(random_books, "savebooks.csv")
 
