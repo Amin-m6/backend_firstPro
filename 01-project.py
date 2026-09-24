@@ -1,4 +1,4 @@
-import requests , random , json , time 
+import requests , random , json , time , csv 
 from typing import List, Dict, Callable, Optional
 
 base_url = 'https://openlibrary.org/search.json'
@@ -95,3 +95,17 @@ def filter_books(
 
 
     return [b for b in books if matches(b)]
+   
+def save_book( books: List[Dict] , file_name:str = 'savebooks.csv'):
+  try:
+    with open(file_name,'w',encoding='utf-8-sig',newline='') as f:
+      writer = csv.writer(f)
+      titels = list(books[0].keys()) 
+      writer.writerow([b for b in titels])
+      writer.writerow([])
+      for i in books:
+        row = list(i.values())
+        writer.writerow(row)
+  except : print('saving data was failed. \n try agane!!')
+
+
