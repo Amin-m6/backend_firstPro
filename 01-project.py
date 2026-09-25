@@ -1,4 +1,4 @@
-import requests , random , json , time , csv 
+import requests , random , time , csv 
 from typing import List, Dict, Callable, Optional
 
 base_url = 'https://openlibrary.org/search.json'
@@ -23,7 +23,7 @@ def fetch_random_book(count=10):
   while len(books)< count and  attempts < max_attempt:
     attempts += 1
     subject = random.choice(subjects)
-    offset = random.randint(0,500)
+    offset = random.randint(0,5000)
 
     params = {
       "q":f'subject:{subject}',
@@ -39,7 +39,7 @@ def fetch_random_book(count=10):
       response.raise_for_status()
       data = response.json()
 
-      for docs in data.get("dacs",[]):
+      for docs in data.get("docs",[]):
         if docs not in books:
           books.append(docs)
           if len(books)>= count:
@@ -64,16 +64,16 @@ def filter_books(
   def matches(book: Dict) -> bool:
     # publish_year
     year = book.get("first_publish_year")
-    if min_year and (year is None or year < min_year):
+    if min_year is not None and (year is None or year < min_year):
         return False
-    if max_year and (year is None or year > max_year):
+    if max_year is not None and (year is None or year > max_year):
         return False
 
     # number_of_page
     pages = book.get("number_of_pages_median")
-    if min_pages and (pages is None or pages < min_pages):
+    if min_pages is not None and (pages is None or pages < min_pages):
         return False
-    if max_pages and (pages is None or pages > max_pages):
+    if max_pages is not None and (pages is None or pages > max_pages):
         return False
 
     # language
@@ -84,7 +84,7 @@ def filter_books(
 
     # rating
     rating = book.get("ratings_average")
-    if min_rating and (rating is None or rating < min_rating):
+    if min_rating is not None and (rating is None or rating < min_rating):
         return False
 
     # outhor
@@ -92,6 +92,9 @@ def filter_books(
         authors = " ".join(book.get("author_name", []))
         if author_contains.lower() not in authors.lower():
             return False
+
+    if custom_filter is not None and not custom_filter(book):
+        return False
 
     return True
   return [b for b in books if matches(b)]
@@ -109,7 +112,8 @@ def save_book( books: List[Dict] , file_name:str = 'savebooks.csv'):
       for i in books:
         row = list(i.values())
         writer.writerow(row)
-  except : print('saving data was failed. \n try agane!!')
+  except OSError as e:
+    print(f'saving data was failed: {e}\ntry agane!!')
 
 
 
@@ -135,5 +139,5 @@ print(f"number of books after filtering: {len(filtered)}")
   #print(f"- {book.get('title')} ({book.get('first_publish_year')}) "
         #f"| {book.get('number_of_pages_median')} page")
 
-save_book(random_books, "savebooks.csv")
+save_book(filtered, "savebooks.csv")
 
