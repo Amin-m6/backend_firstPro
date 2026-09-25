@@ -126,10 +126,9 @@ print(f"number of books : {len(random_books)}")
 #filter books
 filtered = filter_books(
     random_books,
-    min_year=1950,
-    max_year=2020,
-    min_pages=100,
-    min_rating=3.5,
+    min_year=2000,
+    #min_pages=100,
+    #min_rating=3.5,
     language="eng"
 )
 print(f"number of books after filtering: {len(filtered)}")
